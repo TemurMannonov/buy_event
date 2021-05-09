@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS log;
+
+DROP TABLE IF EXISTS "order";
+
+DROP TABLE IF EXISTS customer;
