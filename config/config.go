@@ -38,10 +38,10 @@ func Load() Config {
 	config.PostgresPassword = cast.ToString(getOrReturnDefault("POSTGRES_PASSWORD", "postgres"))
 	config.PostgresDatabase = cast.ToString(getOrReturnDefault("POSTGRES_DATABASE", "buy_event"))
 
-	config.PlayMobileUrl = cast.ToString(getOrReturnDefault("PLAY_MOBILE_URL", "http://91.204.239.44/broker-api/send"))
-	config.PlayMobileOriginator = cast.ToString(getOrReturnDefault("PLAY_MOBILE_ORIGINATOR", "3700"))
-	config.PlayMobileLogin = cast.ToString(getOrReturnDefault("PLAY_MOBILE_LOGIN", "delever"))
-	config.PlayMobilePassword = cast.ToString(getOrReturnDefault("PLAY_MOBILE_PASSWORD", "aDev27hg$82@"))
+	config.PlayMobileUrl = cast.ToString(getOrReturnDefault("PLAY_MOBILE_URL", ""))
+	config.PlayMobileOriginator = cast.ToString(getOrReturnDefault("PLAY_MOBILE_ORIGINATOR", ""))
+	config.PlayMobileLogin = cast.ToString(getOrReturnDefault("PLAY_MOBILE_LOGIN", ""))
+	config.PlayMobilePassword = cast.ToString(getOrReturnDefault("PLAY_MOBILE_PASSWORD", ""))
 
 	config.SendGridApiKey = cast.ToString(getOrReturnDefault("SENDGRID_API_KEY", ""))
 	config.Mail = cast.ToString(getOrReturnDefault("MAIL", ""))

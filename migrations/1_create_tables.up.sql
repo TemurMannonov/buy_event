@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS "order" (
     id              UUID PRIMARY KEY,
     customer_id     UUID NOT NULL REFERENCES customer (id) ON DELETE RESTRICT,
     products        TEXT NOT NULL,
-    total_price     NUMERIC(10, 2) NOT NULL
+    total_price     NUMERIC(20, 2) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS log (

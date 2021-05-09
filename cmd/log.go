@@ -24,9 +24,6 @@ var logCmd = &cobra.Command{
 	Use:   "log",
 	Short: "Display and clear logs",
 	Long:  "Display and clear logs",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Println("Log commannd")
-	},
 }
 
 var displayLogsCmd = &cobra.Command{
@@ -37,9 +34,9 @@ var displayLogsCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-
+		cmd.Println("Logs")
 		for _, log := range logs {
-			cmd.Println(`----------**********----------`)
+			cmd.Println(`------------------------------`)
 			cmd.Println("ID: ", log.ID)
 			cmd.Println("Message: ", log.Message)
 			cmd.Println("Created at: ", log.CreatedAt)

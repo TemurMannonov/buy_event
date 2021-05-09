@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TemurMannonov/buy_event/config"
 	"github.com/TemurMannonov/buy_event/helpers"
@@ -30,9 +31,6 @@ var orderCmd = &cobra.Command{
 	Use:   "order",
 	Short: "Command for getting, adding, updating and deleting order.",
 	Long:  "Command for getting, adding, updating and deleting order.",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Println("Order command")
-	},
 }
 
 var addOrderCmd = &cobra.Command{
@@ -80,7 +78,13 @@ var addOrderCmd = &cobra.Command{
 			return errors.New("Notification type is incorrect")
 		}
 
+		id, err := uuid.NewRandom()
+		if err != nil {
+			return err
+		}
+
 		err = strg.Order().Create(&models.Order{
+			ID:         id.String(),
 			Products:   products,
 			CustomerID: customerID,
 			TotalPrice: totalPrice,
@@ -93,8 +97,30 @@ var addOrderCmd = &cobra.Command{
 		cmd.Println("Order successfully created!")
 
 		customer, err := strg.Customer().Get(customerID)
+		if err != nil {
+			return err
+		}
 
-		go sendNotification(notificationType, customer)
+		text := fmt.Sprintf("Thanks for your oder:"+
+			"\nProducts: %s"+
+			"\nTotal price: %f",
+			products, totalPrice,
+		)
+
+		if notificationType == config.NotificationTypeEmail {
+			err := helpers.SendEmail(customer.Email, text)
+			if err != nil {
+				createLog("Error while sending sms: " + err.Error())
+				return err
+			}
+
+		} else if notificationType == config.NotificationTypeSms {
+			err := helpers.SendSMS(customer.PhoneNumber, text)
+			if err != nil {
+				createLog("Error while sending sms: " + err.Error())
+				return err
+			}
+		}
 
 		return nil
 	},
@@ -105,7 +131,6 @@ var getOrderCmd = &cobra.Command{
 	Short: "Get an order info",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := cmd.Flags().GetString("id")
-
 		if err != nil {
 			return err
 		}
@@ -117,8 +142,9 @@ var getOrderCmd = &cobra.Command{
 				return err
 			}
 
+			cmd.Println(`Orders List`)
 			for _, order := range orders {
-				cmd.Println(`----------**********----------`)
+				cmd.Println(`-----------------------------------`)
 				cmd.Println("ID: ", order.ID)
 				cmd.Println("Customer ID: ", order.CustomerID)
 				cmd.Println("Products: ", order.Products)
@@ -135,6 +161,8 @@ var getOrderCmd = &cobra.Command{
 				return err
 			}
 
+			cmd.Println(`Orders Information`)
+			cmd.Println(`-----------------------------------`)
 			cmd.Println("ID: ", order.ID)
 			cmd.Println("Customer ID: ", order.CustomerID)
 			cmd.Println("Products: ", order.Products)
@@ -193,6 +221,7 @@ var updateOrderCmd = &cobra.Command{
 
 		err = strg.Order().Update(&models.Order{
 			ID:         id,
+			CustomerID: customerID,
 			Products:   products,
 			TotalPrice: totalPrice,
 		})
@@ -232,22 +261,22 @@ var deleteOrderCmd = &cobra.Command{
 }
 
 func init() {
-	addOrderCmd.Flags().StringP("customer-id", "c", "", "Enter customer id")
-	addOrderCmd.Flags().Float64P("total-price", "tp", 0, "Enter total price")
-	addOrderCmd.Flags().StringP("products", "p", "", "Enter products")
-	addOrderCmd.Flags().StringP("notification-type", "nt", "email", "Notification type")
-
-	getOrderCmd.Flags().StringP("id", "i", "", "Enter order id")
-
-	updateOrderCmd.Flags().StringP("id", "i", "", "Enter order id")
-	updateOrderCmd.Flags().Float64P("total-price", "tp", 0, "Enter total price")
-	updateOrderCmd.Flags().StringP("products", "p", "", "Enter products")
-
-	deleteOrderCmd.Flags().StringP("id", "i", "", "Enter order id")
-
+	addOrderCmd.Flags().StringP("customer-id", "c", "", "customer id")
+	addOrderCmd.Flags().Float64P("total-price", "t", 0, "total price")
+	addOrderCmd.Flags().StringP("products", "p", "", "products")
+	addOrderCmd.Flags().StringP("notification-type", "n", "sms", "notification type")
 	orderCmd.AddCommand(addOrderCmd)
+
+	getOrderCmd.Flags().StringP("id", "i", "", "order id")
 	orderCmd.AddCommand(getOrderCmd)
-	orderCmd.AddCommand(getOrderCmd)
+
+	updateOrderCmd.Flags().StringP("id", "i", "", "order id")
+	updateOrderCmd.Flags().StringP("customer-id", "c", "", "customer id")
+	updateOrderCmd.Flags().Float64P("total-price", "t", 0, "total price")
+	updateOrderCmd.Flags().StringP("products", "p", "", "products")
+	orderCmd.AddCommand(updateOrderCmd)
+
+	deleteOrderCmd.Flags().StringP("id", "i", "", "order id")
 	orderCmd.AddCommand(deleteOrderCmd)
 
 	rootCmd.AddCommand(orderCmd)
@@ -262,10 +291,20 @@ func validateNotificationType(notificationType string) bool {
 	return false
 }
 
-func sendNotification(notificationType string, customer *models.Customer) {
-	if notificationType == config.NotificationTypeEmail {
-		helpers.SendEmail(customer.Email, "Ok")
-	} else if notificationType == config.NotificationTypeSms {
-		helpers.SendEmail(customer.PhoneNumber, "Ok")
+func createLog(message string) error {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return err
 	}
+
+	err = strg.Log().Create(&models.Log{
+		ID:      id.String(),
+		Message: message,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

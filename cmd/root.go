@@ -23,6 +23,7 @@ import (
 	"github.com/TemurMannonov/buy_event/config"
 	"github.com/TemurMannonov/buy_event/storage"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"

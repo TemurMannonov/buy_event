@@ -13,7 +13,7 @@ import (
 
 type Message struct {
 	Recipient string `json:"recipient"`
-	MessageID string `json:"message_id"`
+	MessageID string `json:"message-id"`
 	SMS       struct {
 		Originator string `json:"originator"`
 		Content    struct {
@@ -56,13 +56,19 @@ func SendSMS(phoneNumber, text string) error {
 
 	request.Header.Set("Content-Type", "application/json")
 	request.SetBasicAuth(cfg.PlayMobileLogin, cfg.PlayMobilePassword)
-	res, err := client.Do(request)
+	resp, err := client.Do(request)
 	if err != nil {
-		return errors.New("Error while sending sms code: " + err.Error())
+		return err
 	}
 
-	if res.StatusCode != 200 {
-		return errors.New("Playmobile failed to send sms")
+	if resp.StatusCode != 200 {
+		defer resp.Body.Close()
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return errors.New("Playmobile failed to send sms: " + string(body))
 	}
 
 	return nil

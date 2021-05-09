@@ -29,9 +29,6 @@ var customerCmd = &cobra.Command{
 	Use:   "customer",
 	Short: "Command for getting, adding, updating and deleting customer.",
 	Long:  "Command for getting, adding, updating and deleting customer.",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Println("Customer command")
-	},
 }
 
 var addCustomerCmd = &cobra.Command{
@@ -82,7 +79,6 @@ var getCustomerCmd = &cobra.Command{
 	Short: "Get a customer info",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := cmd.Flags().GetString("id")
-
 		if err != nil {
 			return err
 		}
@@ -93,23 +89,26 @@ var getCustomerCmd = &cobra.Command{
 				return err
 			}
 
+			cmd.Println(`Customers List`)
 			for _, customer := range customers {
-				cmd.Println(`----------**********----------`)
+				cmd.Println(`-----------------------------------`)
 				cmd.Println("ID: ", customer.ID)
 				cmd.Println("Email: ", customer.Email)
 				cmd.Println("Phone: ", customer.PhoneNumber)
 			}
 		} else {
-			customerID, err := uuid.Parse(id)
+			_, err := uuid.Parse(id)
 			if err != nil {
 				return err
 			}
 
-			customer, err := strg.Customer().Get(customerID.String())
+			customer, err := strg.Customer().Get(id)
 			if err != nil {
 				return err
 			}
 
+			cmd.Println(`Customer Information`)
+			cmd.Println(`-----------------------------------`)
 			cmd.Println("ID: ", customer.ID)
 			cmd.Println("Email: ", customer.Email)
 			cmd.Println("Phone: ", customer.PhoneNumber)
@@ -120,10 +119,15 @@ var getCustomerCmd = &cobra.Command{
 }
 
 var updateCustomerCmd = &cobra.Command{
-	Use:   "add",
+	Use:   "update",
 	Short: "Update a customer info",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := cmd.Flags().GetString("id")
+		if err != nil {
+			return err
+		}
+
+		_, err = uuid.Parse(id)
 		if err != nil {
 			return err
 		}
@@ -170,12 +174,12 @@ var deleteCustomerCmd = &cobra.Command{
 			return err
 		}
 
-		customerID, err := uuid.Parse(id)
+		_, err = uuid.Parse(id)
 		if err != nil {
 			return err
 		}
 
-		err = strg.Customer().Delete(customerID.String())
+		err = strg.Customer().Delete(id)
 		if err != nil {
 			return err
 		}
@@ -186,19 +190,19 @@ var deleteCustomerCmd = &cobra.Command{
 }
 
 func init() {
-	addCustomerCmd.Flags().StringP("email", "e", "", "Enter customer email")
-	addCustomerCmd.Flags().StringP("phone", "p", "", "Enter customer phone")
-
-	getCustomerCmd.Flags().StringP("id", "i", "", "Enter customer ID")
-
-	updateCustomerCmd.Flags().StringP("email", "e", "", "Enter customer email")
-	updateCustomerCmd.Flags().StringP("phone", "p", "", "Enter customer phone")
-
-	deleteCustomerCmd.Flags().StringP("id", "i", "", "Enter customer id")
-
+	addCustomerCmd.Flags().StringP("phone", "p", "", "customer phone number")
+	addCustomerCmd.Flags().StringP("email", "e", "", "customer email")
 	customerCmd.AddCommand(addCustomerCmd)
+
+	getCustomerCmd.Flags().StringP("id", "i", "", "customer id")
 	customerCmd.AddCommand(getCustomerCmd)
+
+	updateCustomerCmd.Flags().StringP("id", "i", "", "customer id")
+	updateCustomerCmd.Flags().StringP("email", "e", "", "customer email")
+	updateCustomerCmd.Flags().StringP("phone", "p", "", "customer phone number")
 	customerCmd.AddCommand(updateCustomerCmd)
+
+	deleteCustomerCmd.Flags().StringP("id", "i", "", "customer id")
 	customerCmd.AddCommand(deleteCustomerCmd)
 
 	rootCmd.AddCommand(customerCmd)

@@ -11,13 +11,14 @@ import (
 )
 
 func SendEmail(email, text string) error {
-	from := mail.NewEmail("Temur Mannonov", config.Load().Mail)
+	cfg := config.Load()
+	from := mail.NewEmail("Temur Mannonov", cfg.Mail)
 	subject := "Order"
 	to := mail.NewEmail("Customer", email)
 	plainTextContent := text
 	htmlContent := fmt.Sprintf("<strong>%s</strong>", text)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(config.Load().SendGridApiKey)
+	client := sendgrid.NewSendClient(cfg.SendGridApiKey)
 	response, err := client.Send(message)
 
 	if err != nil {
